@@ -9,3 +9,8 @@ class Query(BaseModel):
 
 class TokenCounter(BaseModel):
     query: str
+
+
+class TitleCreate(BaseModel):
+    session_id: str
+    text_message: str

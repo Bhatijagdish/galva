@@ -4,7 +4,7 @@ from database.database import Base
 
 
 class Messages(Base):
-    __tablename__ = 'Messages'
+    __tablename__ = 'messages'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
@@ -15,6 +15,7 @@ class Messages(Base):
     timestamp = Column(String, server_default=func.now())
 
     user = relationship("User", back_populates="messages")
+    session = relationship("Titles", back_populates="messages")
 
 
 class User(Base):
@@ -48,3 +49,14 @@ class PDF(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     filename = Column(String, unique=True, index=True)
+
+
+class Titles(Base):
+    __tablename__ = 'sessions'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    session_id = Column(String, ForeignKey('messages.session_id'), nullable=False)
+    title = Column(String, nullable=False)
+    timestamp = Column(DateTime, server_default=func.now())
+
+    messages = relationship("Messages", back_populates="session")

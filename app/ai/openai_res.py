@@ -15,8 +15,10 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from dotenv import load_dotenv
 from database import logger, insert_message
+from openai import OpenAI
 
 load_dotenv()
+client = OpenAI()
 
 
 class AsyncCallbackHandler(AsyncIteratorCallbackHandler):
@@ -163,9 +165,9 @@ class ConversationalAI:
     async def run_call(self, query: str, chat_history: list, stream_it: AsyncCallbackHandler):
         ai_resp = user_resp = ""
         if chat_history:
-            for sender, message_text in chat_history:
-                if sender.upper() == 'AI':
-                    ai_resp += f"{message_text}\n\n"
+            for msg in chat_history:
+                if msg.sender.upper() == 'AI':
+                    ai_resp += f"{msg.message_text}\n\n"
 
         all_content = ""
         if self.vector_db is not None:
@@ -205,3 +207,16 @@ class ConversationalAI:
         async for token in stream_it.aiter():
             yield token
         await task
+
+    async def title_generation(self, text_message: str):
+        response = client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": "You are a helpful title generation assistant. Create a "
+                                              "new unique title from a provided string, and the title length should "
+                                              "be less than or equal to 20 characters. Please make sure it won't "
+                                              "exceed more than 20 characters in any case."},
+                {"role": "user", "content": text_message}
+            ]
+        )
+        return response.choices[0].message.content
