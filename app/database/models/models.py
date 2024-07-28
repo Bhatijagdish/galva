@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func, Enum, CheckConstraint, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func, Enum, CheckConstraint, Text, Boolean
 from sqlalchemy.orm import relationship
 from database.database import Base
 
@@ -27,8 +27,9 @@ class User(Base):
     first_name = Column(String)
     last_name = Column(String)
     role = Column(String, default="user")
+    is_verified = Column(Boolean, default=False)
+    token = Column(String)
     timestamp = Column(String, server_default=func.now())
-
     refresh_tokens = relationship("RefreshToken", back_populates="user")
     messages = relationship("Messages", back_populates="user")
 

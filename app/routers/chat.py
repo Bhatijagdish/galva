@@ -20,14 +20,14 @@ async def chat(query: Query, db: Session = Depends(db_connection)):
             error_message = "Both 'query' and 'session_id' must be provided"
             return JSONResponse(content={"error": error_message}, status_code=400)
 
-        history_id = str(uuid.uuid4())
-        chat_history = get_recent_messages(db, session_id=query.session_id, user_id=query.user_id, limit=50)
+        # history_id = str(uuid.uuid4())
+        chat_history = get_recent_messages(db, session_id=query.session_id, user_id=query.user_id, page=1, limit=500)
 
-        insert_message(db, query.session_id, history_id, 'human', query.query, query.user_id)
+        # insert_message(db, query.session_id, history_id, 'human', query.query, query.user_id)
 
-        stream_it = AsyncCallbackHandler(db, query.session_id, history_id, query.user_id)
-        gen = ai.create_gen(query.query, chat_history, stream_it)
-
+        # stream_it = AsyncCallbackHandler(db, query.session_id, history_id, query.user_id)
+        # gen = ai.create_gen(query.query, chat_history, stream_it)
+        gen = ai.response_generator(query.query, chat_history)
         return StreamingResponse(gen, media_type="text/event-stream")
     except HTTPException as http_err:
         return JSONResponse(content={"error": str(http_err)}, status_code=http_err.status_code)
@@ -49,13 +49,13 @@ async def get_token_count(token_counter: TokenCounter):
 
 @router.get("/get_conversation/{session_id}")
 async def get_conversation(session_id: str, user_id: int, db: Session = Depends(db_connection)):
-    messages = get_recent_messages(db, session_id, user_id, limit=200)
+    messages = get_recent_messages(db, session_id, user_id, page=1, limit=200)
     return messages
 
 
 @router.get("/get_past_conversations/{user_id}")
-async def get_conversation(user_id: int, db: Session = Depends(db_connection)):
-    messages = get_recent_messages_by_user_id(db, user_id, limit=100)
+async def get_conversation(user_id: int, page: int = 1, limit: int=30, db: Session = Depends(db_connection)):
+    messages = get_recent_messages_by_user_id(db, user_id, page=page, limit=limit)
     session_map = {}
     for message in messages:
         if message.session_id not in session_map:

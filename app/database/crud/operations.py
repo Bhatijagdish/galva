@@ -11,21 +11,24 @@ def insert_message(db: Session, session_id: str, history_id: str, sender: str, m
     return message
 
 
-def get_recent_messages(db: Session, session_id: str, user_id: int, limit: int) -> list:
+def get_recent_messages(db: Session, session_id: str, user_id: int, page: int, limit: int) -> list:
+    skip = (page - 1) * limit
     query = db.query(Messages).filter(Messages.session_id == session_id, Messages.user_id == user_id) \
-        .order_by(Messages.timestamp.desc()).limit(limit).all()
+        .order_by(Messages.timestamp.desc()).offset(skip).limit(limit).all()
     return query[::-1]
 
 
-def get_recent_messages_by_user_id(db: Session, user_id: int, limit: int) -> list:
+def get_recent_messages_by_user_id(db: Session, user_id: int, page: int, limit: int) -> list:
+    skip = (page - 1) * limit
     query = db.query(Messages).filter(Messages.user_id == user_id) \
-        .order_by(Messages.timestamp.desc()).limit(limit).all()
+        .order_by(Messages.timestamp.desc()).offset(skip).limit(limit).all()
     return [msg for msg in query]
 
 
-def get_recent_messages_by_session_id(db: Session, session_id: str, limit: int) -> list:
+def get_recent_messages_by_session_id(db: Session, session_id: str, page: int, limit: int) -> list:
+    skip = (page - 1) * limit
     query = db.query(Messages).filter(Messages.session_id == session_id) \
-        .order_by(Messages.timestamp.desc()).limit(limit).all()
+        .order_by(Messages.timestamp.desc()).offset(skip).limit(limit).all()
     return [(msg.sender, msg.message_text) for msg in query[::-1]]
 
 

@@ -2,7 +2,8 @@ from sqlalchemy.orm import Session
 from database import PDF
 
 
-def get_pdfs(db: Session, skip: int = 0, limit: int = 100):
+def get_pdfs(db: Session, page: int, limit: int):
+    skip = (page - 1) * limit
     return db.query(PDF).offset(skip).limit(limit).all()
 
 
