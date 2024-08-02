@@ -15,7 +15,13 @@ def get_recent_messages(db: Session, session_id: str, user_id: int, page: int, l
     skip = (page - 1) * limit
     query = db.query(Messages).filter(Messages.session_id == session_id, Messages.user_id == user_id) \
         .order_by(Messages.timestamp.desc()).offset(skip).limit(limit).all()
-    return query[::-1]
+    result = []
+    for conv in query[::-1]:
+        if conv.sender == 'human':
+            result.append({"role": "user", "message": conv.message_text})
+        else:
+            result.append({"role": "assistant", "message": conv.message_text})
+    return result
 
 
 def get_recent_messages_by_user_id(db: Session, user_id: int, page: int, limit: int) -> list:

@@ -54,7 +54,7 @@ async def get_conversation(session_id: str, user_id: int, db: Session = Depends(
 
 
 @router.get("/get_past_conversations/{user_id}")
-async def get_conversation(user_id: int, page: int = 1, limit: int=30, db: Session = Depends(db_connection)):
+async def get_conversation(user_id: int, page: int = 1, limit: int = 30, db: Session = Depends(db_connection)):
     messages = get_recent_messages_by_user_id(db, user_id, page=page, limit=limit)
     session_map = {}
     for message in messages:
@@ -62,7 +62,7 @@ async def get_conversation(user_id: int, page: int = 1, limit: int=30, db: Sessi
             query = get_titles_by_session_id(db, message.session_id)
             if query is None:
                 return JSONResponse(content="No titles listed", status_code=404)
-            session_map[message.session_id] = {"id": message.session_id, "title": query.title}
+            session_map[message.session_id] = {"id": query.id, "session_id": query.session_id, "title": query.title}
     return list(session_map.values())
 
 

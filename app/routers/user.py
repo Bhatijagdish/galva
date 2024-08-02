@@ -50,9 +50,9 @@ async def get_current_admin_user(current_user: User = Depends(get_current_user))
 
 
 def create_verification_link(user: User):
-    verification_link = f"{os.getenv('BACKEND_URL')}/api/users/verify/{user.token}"
+    verification_link = f"{os.getenv('FRONTED_URL')}/verify?token={user.token}"
     email_content = f"""
-            <p>Hallo {user.first_name},<br>
+            <p>Hallo {user.first_name},<br><br>
             Herzlich willkommen bei GALVA.AI! Wir freuen uns, Sie als neues Mitglied begrüßen zu dürfen.<br><br>
             Um Ihre Registrierung abzuschließen und alle Funktionen von GALVA.AI nutzen zu können, bitten wir
             Sie, Ihre E-Mail-Adresse zu bestätigen. Klicken Sie dazu einfach auf den folgenden Link:<br><br>
@@ -79,7 +79,7 @@ async def register(user: UserCreate, db: Session = Depends(db_connection)):
                         status_code=status.HTTP_200_OK)
 
 
-@router.get("/verify/{token}")
+@router.get("/verify")
 async def verify_email(token: str, db: Session = Depends(db_connection)):
     user = db.query(User).filter(User.token == token).first()
     if user:
@@ -89,6 +89,7 @@ async def verify_email(token: str, db: Session = Depends(db_connection)):
         db.refresh(user)
         return JSONResponse(status_code=status.HTTP_200_OK,
                             content={"message": "Email verified. Please sign in."})
+        return HTMLResponse(    )
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="Invalid Request")
@@ -102,7 +103,7 @@ async def forgot_password(email: str, db: Session = Depends(db_connection)):
         user.token = uid
         db.commit()
         db.refresh(user)
-        reset_link = f"{os.getenv('FRONTEND_URL')}/reset-password/{uid}"
+        reset_link = f"{os.getenv('FRONTEND_URL')}/reset-password?token={uid}"
 
         email_content = f"<p>Hi {user.first_name},<br> Please use the link to reset password.<br>" \
                         f"<a href='{reset_link}'>Click here</a>" \
@@ -117,9 +118,9 @@ async def forgot_password(email: str, db: Session = Depends(db_connection)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Incorrect email")
 
 
-@router.put("/reset/{token}")
-async def reset_password(token: str, new_password: UserPasswordReset, db: Session = Depends(db_connection)):
-    user = db.query(User).filter(User.token == token).first()
+@router.put("/reset")
+async def reset_password(new_password: UserPasswordReset, db: Session = Depends(db_connection)):
+    user = db.query(User).filter(User.token == new_password.token).first()
     if user:
         user.password = hash_password(new_password.password)
         user.token = ""
@@ -189,7 +190,8 @@ async def get_users_route(page: int = 0, limit: int = 30, db: Session = Depends(
 async def read_user(user_id: int, db: Session = Depends(db_connection)):
     db_user = get_user(db, user_id=user_id)
     if db_user:
-        return JSONResponse(status_code=status.HTTP_200_OK, content=db_user)
+        return db_user
+        # return JSONResponse(status_code=status.HTTP_200_OK, content=db_user)
     return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
 

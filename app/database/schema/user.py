@@ -49,3 +49,4 @@ class UserSignIn(BaseModel):
 
 class UserPasswordReset(BaseModel):
     password: str
+    token: str
