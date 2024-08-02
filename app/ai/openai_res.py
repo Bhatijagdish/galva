@@ -95,7 +95,16 @@ class ConversationalAI:
                       "Ensure your answer is detailed and will help potential users answer their queries. " \
                       "Answer the Question in the Language it is asked. " \
                       "Please ask for additional clarifications if you are confused or do not have all the " \
-                      "information. Please give me an answer in proper Markdown."
+                      "information. Please give me an answer in proper Markdown. " \
+                      "If the answer asked or provided in a table format then use the table html format." \
+                      "For example:" \
+                      "<table><thead><tr><th>Feature</th><th>Carbon (C)</th><th>Sodium Chloride (NaCl)</th>" \
+                      "</tr></thead><tbody><tr><td><strong>Chemical Formula</strong></td><td>C</td>" \
+                      "<td>NaCl</td></tr><tr><td><strong>Type of Substance</strong></td><td>Element</td>" \
+                      "<td>Ionic Compound</td></tr></tbody></table>" \
+                      "If the answer contains the chemical compound information then it should have html " \
+                      "format for compound information. For example: <p>H<sub>2</sub>SO<sub>4</sub></p>"
+
         self.agent = self.create_agent()
 
     def create_vector_store(self):
@@ -220,3 +229,36 @@ class ConversationalAI:
             ]
         )
         return response.choices[0].message.content
+
+    async def response_generator(self, query: str, chat_history: list):
+
+        ai_resp = ""
+        if chat_history:
+            for sender, message_text in chat_history:
+                if sender.upper() == 'AI':
+                    ai_resp += f"\n{message_text}\n"
+
+        # user query
+        embedding_vector = OpenAIEmbeddings().embed_query(query)
+
+        all_content = ""
+        if self.vector_db is not None:
+            docs = self.vector_db.similarity_search(embedding_vector)
+            all_content = '\n'.join(doc.page_content for doc in docs)
+
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": self.PREFIX},
+                {"role": "user", "content": f"\n\n{all_content}\n\n{ai_resp}\n\n{query}"}
+            ],
+            temperature=0,
+            stream=True
+        )
+        for chunk in response:
+            # result['chat_id'] = chunk.id
+            chunk_message = chunk.choices[0].delta.content  # Extract the message
+            if chunk_message:
+                yield chunk_message
+                # result['text_message'] += chunk_message
+                # yield json.dumps(chunk_message) + '\n\n\n\n'

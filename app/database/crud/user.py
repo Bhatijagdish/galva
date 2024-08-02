@@ -3,7 +3,8 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 from lib import hash_password
 from database.models import User, RefreshToken
-from database.schema import UserCreate, UserBase
+from database.schema import UserBase, UserCreate
+from bson import ObjectId
 
 
 def get_user_by_email(db: Session, email: str):
@@ -14,14 +15,22 @@ def get_user(db: Session, user_id: int):
     return db.query(User).filter(User.id == user_id).first()
 
 
-def get_users(db: Session, skip: int, limit: int):
+def get_users(db: Session, page: int, limit: int):
+    skip = (page - 1) * limit
     return db.query(User).offset(skip).limit(limit).all()
 
 
 def create_user(db: Session, user: UserCreate):
     hashed_password = hash_password(user.password)
-    db_user = User(email=user.email, password=hashed_password, first_name=user.first_name, last_name=user.last_name,
-                   role=user.role)
+    db_user = User(
+        email=user.email,
+        password=hashed_password,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        role=user.role,
+        is_verified=user.is_verified,
+        token=''.join([str(ObjectId()) for _ in range(10)])
+    )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
