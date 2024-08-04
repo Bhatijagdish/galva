@@ -95,15 +95,17 @@ class ConversationalAI:
                       "Ensure your answer is detailed and will help potential users answer their queries. " \
                       "Answer the Question in the Language it is asked. " \
                       "Please ask for additional clarifications if you are confused or do not have all the " \
-                      "information. Please give me an answer in proper Markdown. " \
+                      "information. Please give me an answer in proper Markdown. \n\n" \
                       "If the answer asked or provided in a table format then use the table html format." \
-                      "For example:" \
+                      "For example:\n" \
                       "<table><thead><tr><th>Feature</th><th>Carbon (C)</th><th>Sodium Chloride (NaCl)</th>" \
                       "</tr></thead><tbody><tr><td><strong>Chemical Formula</strong></td><td>C</td>" \
                       "<td>NaCl</td></tr><tr><td><strong>Type of Substance</strong></td><td>Element</td>" \
-                      "<td>Ionic Compound</td></tr></tbody></table>" \
+                      "<td>Ionic Compound</td></tr></tbody></table>\n\n" \
                       "If the answer contains the chemical compound information then it should have html " \
-                      "format for compound information. For example: <p>H<sub>2</sub>SO<sub>4</sub></p>"
+                      "format for compound information. For example: <p>H<sub>2</sub>SO<sub>4</sub></p> \n" \
+                      "If the answer asked about the chemical compound then the response should be correctly " \
+                      "formatted. For example: <p>H<sub>2</sub>SO<sub>4</sub></p> for sulphuric acid etc."
 
         self.agent = self.create_agent()
 
