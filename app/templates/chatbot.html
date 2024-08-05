@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Messaging</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex/dist/contrib/auto-render.min.js" defer></script>
+    <style>
+        .dark-mode {
+            background-color: #1a202c;
+            color: #cbd5e0;
+        }
+        .dark-mode .bg-white {
+            background-color: #2d3748;
+        }
+        .dark-mode .text-black {
+            color: #cbd5e0;
+        }
+        .dark-mode .border-gray-300 {
+            border-color: #4a5568;
+        }
+        .dark-mode .bg-gray-100 {
+            background-color: #2d3748;
+        }
+        .dark-mode .hover\:bg-gray-200:hover {
+            background-color: #4a5568;
+        }
+        .dark-mode .hover\:bg-gray-600:hover {
+            background-color: #718096;
+        }
+        .dark-mode .dark-mode-convo {
+            background-color: #2d3748;
+        }
+        .dark-mode .dark-mode-input {
+            background-color: #1a202c;
+            color: #cbd5e0;
+        }
+        .dark-mode .dark-mode-footer {
+            background-color: #1a202c;
+        }
+        .dark-mode .dark-mode-sidebar {
+            background-color: #1a202c;
+        }
+        .message-container {
+            background-color: #e5e7eb;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            max-width: 750px;
+            min-width: auto;
+            white-space: pre-wrap;
+        }
+        .dark-mode .message-container {
+            background-color: #4a5568;
+        }
+        .no-border {
+            border: none;
+        }
+
+
+
+
+
+
+
+
+
+    </style>
+</head>
+<body class="bg-gray-100 text-black">
+<div class="flex h-screen">
+    <!-- Sidebar -->
+    <div class="w-1/5 p-4 no-border dark-mode-sidebar bg-gray-200">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-xl font-bold">Conversations</h1>
+        </div>
+        <button id="newChat"
+                class="w-full py-2 mt-4 mb-4 flex justify-center items-center dark-mode-convo space-x-2 bg-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 dark:bg-gray-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24"
+                 stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            <span>New Chat</span>
+        </button>
+        <div id="conversations" class="space-y-2">
+            <!-- Conversations will be appended here -->
+        </div>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="flex-1 flex flex-col bg-gray-100 dark:bg-gray-800">
+        <div id="chatHeader" class="p-4 no-border dark-mode-header flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">New Chat</h2>
+            <div class="flex">
+                <button id="themeToggle" class="px-6 py-4 rounded">
+                    <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" width="40px" height="40px" viewBox="0 0 24 24"
+                         fill="white">
+                        <path d="M12 3V4M12 20V21M4 12H3M6.31412 6.31412L5.5 5.5M17.6859 6.31412L18.5 5.5M6.31412 17.69L5.5 18.5001M17.6859 17.69L18.5 18.5001M21 12H20M16 12C16 14.2091 14.2091 16 12 16C9.79086 16 8 14.2091 8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12Z"
+                              stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <svg id="moonIcon" class="hidden border-radius rounded" xmlns="http://www.w3.org/2000/svg"
+                         width="40px" height="40px"
+                         viewBox="0 0 24 24"
+                         fill="none">
+                        <rect xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="white"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd"
+                              d="M8.23129 2.24048C9.24338 1.78695 10.1202 2.81145 9.80357 3.70098C8.72924 6.71928 9.38932 10.1474 11.6193 12.3765C13.8606 14.617 17.3114 15.2755 20.3395 14.1819C21.2206 13.8637 22.2173 14.7319 21.7817 15.7199C21.7688 15.7491 21.7558 15.7782 21.7427 15.8074C20.9674 17.5266 19.7272 19.1434 18.1227 20.2274C16.4125 21.3828 14.3957 22.0001 12.3316 22.0001H12.3306C9.93035 21.9975 7.6057 21.1603 5.75517 19.6321C3.90463 18.1039 2.64345 15.9797 2.18793 13.6237C1.73241 11.2677 2.11094 8.82672 3.2586 6.71917C4.34658 4.72121 6.17608 3.16858 8.20153 2.25386L8.23129 2.24048Z"
+                              fill="#323232"/>
+                    </svg>
+                </button>
+                <button id="logoutButton" class="bg-red-500 text-white m-4 px-6 py-2 rounded hover:bg-red-600">Logout
+                </button>
+            </div>
+        </div>
+        <div id="chatBody" class="flex-1 p-4 overflow-y-auto no-border bg-gray-100 dark:bg-gray-800">
+            <!-- Messages will be appended here -->
+        </div>
+        <div id="chatFooter" class="p-4 no-border bg-gray-100 dark:bg-gray-800">
+            <form id="messageForm" class="flex justify-between items-center">
+                <textarea id="messageInput"
+                          class="flex-1 no-border rounded-xl shrink p-2 mx-60 dark-mode-input bg-gray-200"
+                          placeholder="Type a message..."></textarea>
+                <button class="absolute bottom-1.5 right-2 rounded-lg border border-gray-400 p-0.5 text-white transition-colors enabled:bg-black disabled:bg-black disabled:text-gray-400 disabled:opacity-10 dark:border-white dark:bg-white dark:disabled:bg-white mb-8 mr-64"
+                        id="send-button" type="submit">
+                            <span class="" data-state="closed">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                     class="text-white dark:text-black">
+                                    <path d="M7 11L12 6L17 11M12 18V7" stroke="grey" stroke-width="2"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"></path>
+                                </svg>
+                            </span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const themeToggle = document.getElementById('themeToggle');
+    const body = document.body;
+    const sunIcon = document.getElementById('sunIcon');
+    const moonIcon = document.getElementById('moonIcon');
+
+    const sessionId = generateSessionId();
+    localStorage.setItem('sessionId', sessionId);
+
+    themeToggle.addEventListener('click', () => {
+        body.classList.toggle('dark-mode');
+        if (body.classList.contains('dark-mode')) {
+            sunIcon.classList.add('hidden');
+            moonIcon.classList.remove('hidden');
+        } else {
+            sunIcon.classList.remove('hidden');
+            moonIcon.classList.add('hidden');
+        }
+    });
+
+    const conversations = document.getElementById('conversations');
+    const chatHeader = document.getElementById('chatHeader');
+    const chatBody = document.getElementById('chatBody');
+    const messageForm = document.getElementById('messageForm');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('send-button');
+    const userId = localStorage.getItem('userId');
+    let isTitleGenerated = false;
+
+    // Fetch past conversations
+    async function fetchPastConversations() {
+        const response = await fetch(`/api/bot/get_past_conversations/${userId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const pastConversations = await response.json();
+        conversations.innerHTML = '';
+        pastConversations.forEach(convo => {
+            const convoElement = document.createElement('div');
+            convoElement.className = 'p-2 bg-gray-200 rounded cursor-pointer dark-mode-convo dark:bg-gray-700';
+            convoElement.textContent = convo.title;
+            convoElement.addEventListener('click', () => loadConversation(convo.id, convo.title));
+            conversations.appendChild(convoElement);
+        });
+    }
+
+    async function loadConversation(id, title) {
+        chatHeader.querySelector('h2').textContent = title;
+        chatBody.innerHTML = '';
+
+        const sessionId = id;
+
+        const response = await fetch(`/api/bot/get_conversation/${sessionId}?user_id=${userId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+            }
+        });
+        const messages = await response.json();
+
+        messages.forEach(msg => {
+            if (msg.sender === 'human'){
+                const rightElement = document.createElement('div');
+                rightElement.className = 'flex w-full flex-col items-end rtl:items-start';
+                const messageElement = document.createElement('div');
+                messageElement.className = 'text-left mb-2 message-container';
+                messageElement.textContent = `${msg.message_text}`;
+                rightElement.appendChild(messageElement);
+                chatBody.appendChild(rightElement);
+            }
+
+            if (msg.sender === 'ai'){
+                const leftElement = document.createElement('div');
+                leftElement.className = 'flex w-full flex-col';
+                const aiMessageElement = document.createElement('div');
+                aiMessageElement.className = 'text-left text-base/6 mb-2 message-container';
+                aiMessageElement.textContent = `${msg.message_text}`;
+                leftElement.appendChild(aiMessageElement);
+                chatBody.appendChild(leftElement);
+            }
+
+        });
+    }
+
+    function generateSessionId() {
+        return 'session-' + Math.random().toString(36).substr(2, 9);
+    }
+
+    document.getElementById('newChat').addEventListener('click', () => {
+        chatHeader.querySelector('h2').textContent = 'New Chat';
+        chatBody.innerHTML = ''; // Clear current chat
+
+        const sessionId = generateSessionId();
+        localStorage.setItem('sessionId', sessionId);
+        isTitleGenerated = false;
+    });
+
+    messageForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const messageText = messageInput.value;
+    if (!messageText) return;
+
+    const sessionId = localStorage.getItem('sessionId') || generateSessionId(); // Retrieve or generate a session ID
+
+    const rightElement = document.createElement('div');
+    rightElement.className = 'flex w-full flex-col items-end rtl:items-start';
+    const messageElement = document.createElement('div');
+    messageElement.className = 'text-left mb-2 message-container';
+    messageElement.innerHTML = messageText; // Replace \n with <br>
+    rightElement.appendChild(messageElement);
+    chatBody.appendChild(rightElement);
+
+    messageInput.value = '';
+    chatBody.scrollTop = chatBody.scrollHeight;
+
+    await fetch('/api/bot/title-generation', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({session_id: sessionId, text_message: messageText})
+    });
+
+    const response = await fetch('/api/bot/conversations', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ query: messageText, session_id: sessionId, user_id: userId })
+    });
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let aiMessage = '';
+    let responseId = '';
+    let partialChunk = '';
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value);
+
+<!--         partialChunk += value;-->
+
+<!--        const responseChunk = JSON.parse(partialChunk);-->
+
+<!--        partialChunk = '';-->
+
+<!--        console.log(responseChunk.text_message);-->
+
+        if (!responseId) {
+            responseId = responseChunk.id;
+        }
+
+        aiMessage += chunk;
+
+        aiMessage = aiMessage.trim().replace(/^"/g, '').trim().replace(/```/g, '').trim().replace(/}/g, '').trim().replace(/"$/g, '').trim();
+
+        let aiMessageContainer = document.getElementById(responseId);
+
+        if (!aiMessageContainer) {
+            const leftElement = document.createElement('div');
+            leftElement.className = 'flex w-full flex-col';
+            aiMessageContainer = document.createElement('div');
+            aiMessageContainer.className = 'text-left text-base/6 mb-2 message-container';
+            aiMessageContainer.id = responseId;
+            leftElement.appendChild(aiMessageContainer);
+            chatBody.appendChild(leftElement);
+        }
+
+        aiMessageContainer.innerHTML = marked.parse(aiMessage.replace(/\n/g, '<br>'));
+        renderMathInElement(chatBody);
+
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    setTimeout(fetchPastConversations, 15000);
+});
+
+
+    document.getElementById('logoutButton').addEventListener('click', () => {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('userId');
+        window.location.href = 'login';
+    });
+
+    fetchPastConversations();
+
+
+
+
+
+
+
+</script>
+</body>
+</html>
