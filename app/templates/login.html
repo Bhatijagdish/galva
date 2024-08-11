@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+<div class="container mx-auto py-8">
+    <div class="bg-white p-4 rounded shadow mx-auto max-w-sm">
+        <h2 class="text-xl font-bold mb-4">Admin Login</h2>
+        <form id="loginForm" class="space-y-4">
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                <input id="email" type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+            </div>
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input id="password" type="password" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+            </div>
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Login</button>
+        </form>
+        <div id="error" class="text-red-500 mt-4" style="display: none;">Invalid email or password</div>
+    </div>
+</div>
+
+<script>
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const response = await fetch('/api/users/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({ username: email, password: password })
+            });
+
+            const result = await response.json();
+            console.log(result)
+            if (response.ok) {
+                localStorage.setItem('accessToken', result.access_token);
+                localStorage.setItem('refreshToken', result.refresh_token);
+                localStorage.setItem('role', result.role); // Save user role
+                localStorage.setItem('userId', result.user_id);
+                redirectToDashboard(result.role);
+            } else {
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').innerText = result.detail;
+            }
+        });
+
+        function displayDashboardSelection() {
+            const container = document.querySelector('.container');
+            container.innerHTML = `
+                <div class="bg-white p-4 rounded shadow mx-auto max-w-sm">
+                    <h2 class="text-xl font-bold mb-4">Select Dashboard</h2>
+                    <button onclick="navigateToDashboard('/user-management')" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mb-2 block w-full text-center">User Management</button>
+                    <button onclick="navigateToDashboard('/pdf-management')" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 block w-full text-center">PDF Management</button>
+                </div>
+            `;
+        }
+
+        function redirectToDashboard(role) {
+            if (role === 'admin') {
+                displayDashboardSelection();
+            } else {
+                window.location.href = '/chat';
+            }
+        }
+
+
+
+        function navigateToDashboard(dashboardURL) {
+            window.location.href = dashboardURL;
+        }
+
+
+
+</script>
+</body>
+</html>

@@ -8,7 +8,7 @@ from bson import ObjectId
 
 
 def get_user_by_email(db: Session, email: str):
-    return db.query(User).filter(User.email == email).first()
+    return db.query(User).filter(User.email == email.lower()).first()
 
 
 def get_user(db: Session, user_id: int):
@@ -23,7 +23,7 @@ def get_users(db: Session, page: int, limit: int):
 def create_user(db: Session, user: UserCreate):
     hashed_password = hash_password(user.password)
     db_user = User(
-        email=user.email,
+        email=user.email.lower(),
         password=hashed_password,
         first_name=user.first_name,
         last_name=user.last_name,

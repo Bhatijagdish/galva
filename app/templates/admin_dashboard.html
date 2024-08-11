@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #3498db;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 999;
+            cursor: pointer;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .popup {
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .drag-over {
+            background-color: #e2e8f0;
+            border: 2px dashed #3498db;
+        }
+
+
+    </style>
+</head>
+<body class="bg-gray-100">
+<header class="bg-white shadow">
+    <div class="container mx-auto p-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold">PDF Management</h1>
+        <button id="logoutButton" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Logout</button>
+    </div>
+</header>
+<div id="content">
+    <div class="container mx-auto py-8">
+        <div class="bg-white p-4 rounded shadow mb-8">
+            <h2 class="text-xl font-bold mb-4">Upload PDF</h2>
+            <div id="dropZone" class="border-dashed border-2 border-gray-300 p-4 rounded text-center cursor-pointer">
+                Drag & Drop files here or click to select
+            </div>
+            <form id="uploadForm" class="space-y-4">
+                <input id="fileInput" type="file" name="files" class="hidden" multiple>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Upload</button>
+            </form>
+            <div id="fileList" class="mt-4"></div>
+        </div>
+
+        <div class="bg-white p-4 rounded shadow">
+            <h2 class="text-xl font-bold mb-4">Uploaded PDFs</h2>
+            <ul id="pdfList"></ul>
+        </div>
+    </div>
+</div>
+
+<div id="overlay" class="overlay">
+    <div class="loader"></div>
+</div>
+
+<div id="successPopup" class="popup">
+    <h2 class="text-center text-xl font-bold mb-4">Upload Successful! - Please Reload</h2>
+    <p class="text-center">File processed successfully. Please reload the page.</p>
+</div>
+
+<script>
+
+    let selectedFiles = [];
+
+    document.addEventListener("DOMContentLoaded", function () {
+        fetchPDFList();
+
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+        document.getElementById('dropZone').addEventListener('click', () => document.getElementById('fileInput').click());
+        document.getElementById('dropZone').addEventListener('dragover', handleDragOver);
+        document.getElementById('dropZone').addEventListener('dragleave', handleDragLeave);
+        document.getElementById('dropZone').addEventListener('drop', handleDrop);
+
+        document.getElementById('logoutButton').addEventListener('click', logout);
+        document.getElementById('uploadForm').addEventListener('submit', uploadPDF);
+    });
+
+    async function fetchPDFList() {
+        const response = await fetch('/api/pdf/pdfs', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+            }
+        });
+
+        if (response.ok) {
+            const pdfs = await response.json();
+            const pdfList = document.getElementById('pdfList');
+            pdfList.innerHTML = '';
+
+            pdfs.forEach(pdf => {
+                const li = document.createElement('li');
+                li.className = 'mb-2 flex justify-between items-center';
+                const link = document.createElement('a');
+                link.href = `/api/pdf/pdfs/${pdf.filename}`;
+                link.target = '_blank';
+                link.textContent = pdf.filename;
+                link.className = 'text-blue-500 hover:underline';
+
+                const button = document.createElement('button');
+                button.textContent = 'Delete';
+                button.className = 'bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600';
+                button.addEventListener('click', () => deletePDF(pdf.id));
+
+                li.appendChild(link);
+                li.appendChild(button);
+                pdfList.appendChild(li);
+            });
+        } else {
+            alert("Failed to fetch PDF list.");
+        }
+    }
+
+    function handleFileSelect(event) {
+        const files = event.target.files;
+        addFilesToSelection(files);
+    }
+
+    function handleDragOver(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        document.getElementById('dropZone').classList.add('drag-over');
+    }
+
+    function handleDragLeave(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        document.getElementById('dropZone').classList.remove('drag-over');
+    }
+
+    function handleDrop(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        document.getElementById('dropZone').classList.remove('drag-over');
+        const files = event.dataTransfer.files;
+        addFilesToSelection(files);
+    }
+
+    function addFilesToSelection(files) {
+        selectedFiles = [...selectedFiles, ...Array.from(files)];
+        renderFileList();
+    }
+
+    function renderFileList() {
+        const fileList = document.getElementById('fileList');
+        fileList.innerHTML = '';
+        selectedFiles.forEach((file, index) => {
+            const li = document.createElement('li');
+            li.className = 'mb-2 flex justify-between items-center';
+
+            const span = document.createElement('span');
+            span.textContent = file.name;
+            span.className = 'text-gray-900';
+
+            const button = document.createElement('button');
+            button.textContent = 'Remove';
+            button.className = 'bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600';
+            button.addEventListener('click', () => removeFile(index));
+
+            li.appendChild(span);
+            li.appendChild(button);
+            fileList.appendChild(li);
+        });
+    }
+
+    function removeFile(index) {
+        selectedFiles.splice(index, 1);
+        renderFileList();
+    }
+
+    async function uploadPDF(event) {
+        event.preventDefault();
+        if (selectedFiles.length === 0) {
+            alert("No files selected!");
+            return;
+        }
+
+        const formData = new FormData();
+        selectedFiles.forEach(file => {
+            formData.append('files', file);
+        });
+
+        document.getElementById('overlay').style.display = 'block';
+
+        const response = await fetch('/api/pdf/upload_pdf', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+            },
+            body: formData,
+        });
+
+        document.getElementById('overlay').style.display = 'none';
+
+        if (response.ok) {
+            document.getElementById('successPopup').style.display = 'block';
+            setTimeout(function() {
+                document.getElementById('successPopup').style.display = 'none';
+                location.reload();
+            }, 1500);
+        } else {
+            alert("Failed to upload file.");
+        }
+    }
+
+    async function logout() {
+        localStorage.removeItem('accessToken');
+        window.location.href = 'login';
+    }
+
+    async function deletePDF(pdf_id) {
+        const response = await fetch(`/api/pdf/pdfs/${pdf_id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+            }
+        });
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert("Failed to delete file.");
+        }
+    }
+
+
+</script>
+</body>
+</html>
