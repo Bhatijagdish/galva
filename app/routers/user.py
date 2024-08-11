@@ -89,7 +89,6 @@ async def verify_email(token: str, db: Session = Depends(db_connection)):
         db.refresh(user)
         return JSONResponse(status_code=status.HTTP_200_OK,
                             content={"message": "Email verified. Please sign in."})
-        return HTMLResponse(    )
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="Invalid Request")
