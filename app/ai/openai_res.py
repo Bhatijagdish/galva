@@ -115,7 +115,11 @@ class ConversationalAI:
                       "\text{Cu} \rightarrow \text{Cu}^{2+} + 2\text{e}^-\n" \
                       "\]\n" \
                       "then the response should be formatted like this:\n" \
-                      "Cu → CU<sup>2+</sup> + 2e<sup>-</sup>"
+                      "Cu → CU<sup>2+</sup> + 2e<sup>-</sup>\n" \
+                      "If the answer contains\n" \
+                      "\text{H}_2\text{SO}_4\n" \
+                      "then the response should be formatted like this:\n" \
+                      "H<sub>2+</sub>SO<sub>4</sub>"
 
         self.agent = self.create_agent()
 
