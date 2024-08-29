@@ -9,6 +9,7 @@ from database import (Query, TokenCounter, get_recent_messages, db_connection, i
 from ai.openai_res import AsyncCallbackHandler, ConversationalAI
 from sqlalchemy.orm import Session
 
+
 router = APIRouter()
 ai = ConversationalAI()
 

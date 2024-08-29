@@ -21,6 +21,7 @@ sender_email = os.getenv("EMAIL")
 sender_email_pssword = os.getenv("PASSWORD")
 
 
+
 async def get_current_user(access_token: str = Depends(oauth2_scheme),
                            db: Session = Depends(db_connection)):
     payload = decode_access_token(access_token)
@@ -89,6 +90,7 @@ async def verify_email(token: str, db: Session = Depends(db_connection)):
         db.refresh(user)
         return JSONResponse(status_code=status.HTTP_200_OK,
                             content={"message": "Email verified. Please sign in."})
+        return HTMLResponse(    )
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="Invalid Request")

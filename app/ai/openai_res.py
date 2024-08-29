@@ -7,11 +7,13 @@ from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.agents import AgentType, initialize_agent
-from langchain_openai import ChatOpenAI
+from langchain.chat_models import ChatOpenAI
+
 from langchain.memory import ConversationBufferWindowMemory
 from langchain.callbacks.streaming_aiter import AsyncIteratorCallbackHandler
 from langchain.schema import LLMResult
-from langchain_openai import OpenAIEmbeddings
+from langchain.embeddings import OpenAIEmbeddings
+
 from langchain_community.vectorstores import FAISS
 from dotenv import load_dotenv
 from database import logger, insert_message
@@ -105,21 +107,7 @@ class ConversationalAI:
                       "If the answer contains the chemical compound information then it should have html " \
                       "format for compound information. For example: <p>H<sub>2</sub>SO<sub>4</sub></p> \n" \
                       "If the answer asked about the chemical compound then the response should be correctly " \
-                      "formatted. For example: <p>H<sub>2</sub>SO<sub>4</sub></p> for sulphuric acid etc.\n" \
-                      "For example:\n" \
-                      "If the answer contains \[ \text{Cu}^{2+} (aq) + 2e^- \rightarrow \text{Cu} (s) \]\n" \
-                      "then the response should be formatted like this: \n" \
-                      "Cu<sup>{2+}</sup>(aq) + 2e<sup>-</sup> → Cu(s)\n" \
-                      "If the answer contains\n" \
-                      "\[\n" \
-                      "\text{Cu} \rightarrow \text{Cu}^{2+} + 2\text{e}^-\n" \
-                      "\]\n" \
-                      "then the response should be formatted like this:\n" \
-                      "Cu → CU<sup>2+</sup> + 2e<sup>-</sup>\n" \
-                      "If the answer contains\n" \
-                      "\text{H}_2\text{SO}_4\n" \
-                      "then the response should be formatted like this:\n" \
-                      "H<sub>2+</sub>SO<sub>4</sub>"
+                      "formatted. For example: <p>H<sub>2</sub>SO<sub>4</sub></p> for sulphuric acid etc."
 
         self.agent = self.create_agent()
 
